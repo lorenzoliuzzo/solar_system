@@ -8,3 +8,5 @@ execute: compile
 	./main
 	rm main
 	
+clear: 
+	rm data/*.txt
