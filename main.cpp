@@ -47,7 +47,7 @@ void simulate_solar_system(const time_measurement& tmax, const time_measurement&
 int main() {
 
 
-    simulate_solar_system(31536000 * 3 * s, 86400 * 2 * s);
+    simulate_solar_system(31536000 * 5 * s, 86400 * 2 * s);
 
     return 0; 
 }
