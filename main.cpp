@@ -1,48 +1,40 @@
 #include "solar_system.hpp"
 
 using namespace physics::potentials;
-using namespace solar_system; 
 
 
+std::vector<std::string> solar_system_names = {"Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"};
 
-void simulate_solar_system(const physics::tools::time& tmax, const physics::tools::time& dt) {
 
-    physics::tools::time t;
-    mass_system<2> sys;
+void simulate_solar_system(const time_measurement& tmax, const time_measurement& dt) {
 
-    Mercury.set_at_perihelion();
-    Venus.set_at_aphelion();
-    Earth.set_at_perihelion();
-    Mars.set_at_aphelion();
-    Jupiter.set_at_perihelion();
-    Saturn.set_at_aphelion();
-    Uranus.set_at_perihelion();
-    Neptune.set_at_aphelion();
+    time_measurement t;
 
-    sys.add(Sun);
-    sys.add(Mercury);
-    sys.add(Venus);
-    sys.add(Earth);
-    sys.add(Mars);
-    sys.add(Jupiter);
-    sys.add(Saturn);
-    sys.add(Uranus);
-    sys.add(Neptune);
+    Mercury.set_at_aphelion();
+    Venus.set_at_perihelion();
+    Earth.set_at_aphelion();
+    Mars.set_at_perihelion();
+    Jupiter.set_at_aphelion();
+    Saturn.set_at_perihelion();
+    Uranus.set_at_aphelion();
+    Neptune.set_at_perihelion();
 
-    sys.print();
+    system_of_masses<2> solar_system({Sun, Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune}); 
+
 
     do {
 
-        sys.evolve(dt);
-        for (auto& i : sys.objects()) {
-            i.get_position().save("data/" + i.name() + "_position.txt", km);
-            i.get_linear_velocity().save("data/" + i.name() + "_velocity.txt", kmps);
+        solar_system.evolve(dt);
+
+        for (size_t i{}; i < solar_system.count(); ++i) {
+            solar_system[i].as_position().save("data/" + solar_system_names[i] + "_position.txt", km);
+            solar_system[i].as_linear_velocity().save("data/" + solar_system_names[i] + "_velocity.txt", km_s);
         }
         t += dt;
 
     } while(t < tmax);
 
-    sys.print();
+    solar_system.print();
 
 }
 
@@ -55,7 +47,7 @@ void simulate_solar_system(const physics::tools::time& tmax, const physics::tool
 int main() {
 
 
-    simulate_solar_system(31536000 * 10 * s, 86400 * 3.5 * s);
+    simulate_solar_system(31536000 * 3 * s, 86400 * 2 * s);
 
     return 0; 
 }

@@ -1,7 +1,6 @@
 #pragma once
 #include "physim.hpp"
 
-
 using namespace physics::objects;
 
 
@@ -12,15 +11,26 @@ class star : public mass<DIM> {
     public:
 
         explicit constexpr star(const std::string& name,
-                                  const measurement& mass,
-                                // shape shape = geometry::shapes::circle(0.0 * m),
-                                  const position<DIM>& pos, 
-                                  const uint& id = 0) noexcept : 
+                                const mass_measurement& mass,
+                                const position<DIM>& pos) noexcept : 
 
-            mass<DIM>(mass, pos, id, name) {}
+            mass<DIM>(mass, pos),
+            name_{name} {}
 
 
         constexpr ~star() noexcept = default;
+
+
+        constexpr std::string name() const noexcept {
+
+            return name_; 
+
+        }
+
+
+    private: 
+        
+        std::string name_;
 
 
 }; // class star
@@ -32,7 +42,9 @@ class planet : public mass<DIM> {
 
     private:
 
-        physics::tools::time orbit_period_;
+        std::string name_;
+
+        time_measurement orbit_period_;
 
         position<DIM> perihelion_position_;
 
@@ -46,16 +58,15 @@ class planet : public mass<DIM> {
     public:
 
         explicit constexpr planet(const std::string& name,
-                                  const measurement& mass,
-                                // shape shape = geometry::shapes::circle(0.0 * m),
+                                  const mass_measurement& mass,
                                   const position<DIM>& aphelion_pos, 
                                   const linear_velocity<DIM>& aphelion_vel,
                                   const position<DIM>& perihelion_pos, 
                                   const linear_velocity<DIM>& perihelion_vel,  
-                                  const physics::tools::time& orbit_period = physics::tools::time(), 
-                                  const uint& id = 0) noexcept : 
+                                  const time_measurement& orbit_period = time_measurement()) noexcept : 
 
-            mass<DIM>(mass, position<DIM>(), id, name),
+            mass<DIM>(mass, position<DIM>()),
+            name_{name},
             orbit_period_{orbit_period}, 
             perihelion_position_{perihelion_pos}, 
             aphelion_position_{aphelion_pos},
@@ -65,7 +76,8 @@ class planet : public mass<DIM> {
 
         constexpr planet(const planet& other) noexcept : 
 
-            mass<DIM>(other), 
+            mass<DIM>(other.as_mass_object()), 
+            name_{other.name_},
             orbit_period_{other.orbit_period_}, 
             perihelion_position_{other.perihelion_position_}, 
             aphelion_position_{other.aphelion_position_}, 
@@ -75,7 +87,8 @@ class planet : public mass<DIM> {
 
         constexpr planet(planet&& other) noexcept :
 
-            mass<DIM>(std::move(other)), 
+            mass<DIM>(std::move(other.as_mass_object())), 
+            name_{std::move(other.name_)},
             orbit_period_{std::move(other.orbit_period_)}, 
             perihelion_position_{std::move(other.perihelion_position_)}, 
             aphelion_position_{std::move(other.aphelion_position_)}, 
@@ -88,6 +101,7 @@ class planet : public mass<DIM> {
             if (this != &other) {
 
                 mass<DIM>::operator=(other); 
+                name_ = other.name_;
                 orbit_period_ = other.orbit_period_; 
                 perihelion_position_ = other.perihelion_position_; 
                 aphelion_position_ = other.aphelion_position_; 
@@ -106,6 +120,7 @@ class planet : public mass<DIM> {
             if (this != &other) {
 
                 mass<DIM>::operator=(std::move(other)); 
+                name_ = std::move(other.name_);
                 orbit_period_ = std::move(other.orbit_period_); 
                 perihelion_position_ = std::move(other.perihelion_position_); 
                 aphelion_position_ = std::move(other.aphelion_position_); 
@@ -124,21 +139,21 @@ class planet : public mass<DIM> {
 
         constexpr void set_at_perihelion() noexcept {
 
-            this->set_position(perihelion_position_); 
-            this->set_linear_velocity(perihelion_velocity_); 
+            this->position_ = perihelion_position_; 
+            this->linear_velocity_ = perihelion_velocity_; 
 
         }
 
 
         constexpr void set_at_aphelion() noexcept {
 
-            this->set_position(aphelion_position_); 
-            this->set_linear_velocity(aphelion_velocity_); 
+            this->position_ = aphelion_position_; 
+            this->linear_velocity_ = aphelion_velocity_; 
 
         }
 
 
-        constexpr physics::tools::time orbit_period() const noexcept {
+        constexpr time_measurement orbit_period() const noexcept {
 
             return orbit_period_; 
 
@@ -173,61 +188,63 @@ class planet : public mass<DIM> {
         }
 
 
+        constexpr std::string name() const noexcept {
+
+            return name_; 
+
+        }
+
+
 }; // class planet
 
 
-namespace solar_system {
+star<2> Sun("Sun", 1.989e30 * kg, position<2>({0.0 * m, 0.0 * m}));
 
 
-    star<2> Sun("Sun", 1.989e30 * kg, position<2>({0.0 * m, 0.0 * m}), 0);
+planet<2> Mercury("Mercury", 0.33010E24 * kg, 
+                position<2>({69.818E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, 38.86 * km_s}), 
+                position<2>({-46E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, -58.98 * km_s}),
+                87.969 * 24 * 3600. * s);
 
 
-    planet<2> Mercury("Mercury", 0.33010E24 * kg, 
-                    position<2>({69.818E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, 38.86 * kmps}), 
-                    position<2>({-46E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, -58.98 * kmps}),
-                    87.969 * day);
+planet<2> Venus("Venus", 4.8673E24 * kg, 
+                position<2>({108.941E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, 34.79 * km_s}), 
+                position<2>({-107.480E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, -35.26 * km_s}),
+                224.701 * 24 * 3600. * s);
+
+    
+planet<2> Earth("Earth", 5.9722E24 * kg, 
+                position<2>({152.100E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, 29.2911 * km_s}), 
+                position<2>({-147.095E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, -30.2865 * km_s}),
+                365.256 * 24 * 3600. * s);
 
 
-    planet<2> Venus("Venus", 4.8673E24 * kg, 
-                    position<2>({108.941E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, 34.79 * kmps}), 
-                    position<2>({-107.480E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, -35.26 * kmps}),
-                    224.701 * day);
-
-        
-    planet<2> Earth("Earth", 5.9722E24 * kg, 
-                    position<2>({152.100E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, 29.2911 * kmps}), 
-                    position<2>({-147.095E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, -30.2865 * kmps}),
-                    365.256 * day);
+planet<2> Mars("Mars", 0.64169E24 * kg, 
+                position<2>({249.261E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, 21.97 * km_s}), 
+                position<2>({-206.650E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, -26.50 * km_s}),
+                686.980 * 24 * 3600. * s);
 
 
-    planet<2> Mars("Mars", 0.64169E24 * kg, 
-                    position<2>({249.261E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, 21.97 * kmps}), 
-                    position<2>({-206.650E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, -26.50 * kmps}),
-                    686.980 * day);
+planet<2> Jupiter("Jupiter", 1898.13E24 * kg, 
+                position<2>({816.363E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, 12.44 * km_s}), 
+                position<2>({-740.595E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, -13.72 * km_s}),
+                4332.589 * 24 * 3600. * s);
 
 
-    planet<2> Jupiter("Jupiter", 1898.13E24 * kg, 
-                    position<2>({816.363E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, 12.44 * kmps}), 
-                    position<2>({-740.595E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, -13.72 * kmps}),
-                    4332.589 * day);
+planet<2> Saturn("Saturn", 568.32E24 * kg, 
+                position<2>({1506.527E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, 9.09 * km_s}), 
+                position<2>({-1357.554E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, -10.18 * km_s}),
+                10759.22 * 24 * 3600. * s);
 
 
-    planet<2> Saturn("Saturn", 568.32E24 * kg, 
-                    position<2>({1506.527E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, 9.09 * kmps}), 
-                    position<2>({-1357.554E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, -10.18 * kmps}),
-                    10759.22 * day);
+planet<2> Uranus("Uranus", 86.811E24 * kg, 
+                position<2>({3001.390E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, 6.49 * km_s}), 
+                position<2>({-2732.696E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, -7.11 * km_s}),
+                30685.4 * 24 * 3600. * s);
 
 
-    planet<2> Uranus("Uranus", 86.811E24 * kg, 
-                    position<2>({3001.390E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, 6.49 * kmps}), 
-                    position<2>({-2732.696E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, -7.11 * kmps}),
-                    30685.4 * day);
+planet<2> Neptune("Neptune", 102.409E24 * kg, 
+                position<2>({4558.857E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, 5.37  * km_s}), 
+                position<2>({-4471.050E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * km_s, -5.50 * km_s}),
+                60189 * 24 * 3600. * s);
 
-
-    planet<2> Neptune("Neptune", 102.409E24 * kg, 
-                    position<2>({4558.857E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, 5.37  * kmps}), 
-                    position<2>({-4471.050E6 * km, 0.0 * km}), linear_velocity<2>({0.0 * kmps, -5.50 * kmps}),
-                    60189 * day);
-
-
-} // namespace solar_system

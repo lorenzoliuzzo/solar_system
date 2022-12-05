@@ -1,12 +1,8 @@
 CXXFLAGS = -g -Wall --pedantic -fno-elide-constructors -std=c++2a
-DIR = -I ../physim
+PHYSIM = -I ~/Desktop/codes/physim/include
 
-compile: main.cpp
-	g++ -o main main.cpp $(CXXFLAGS) $(DIR)
+solar: main.cpp 
+	$(CXX) $(CXXFLAGS) $(PHYSIM) -o $@ $<
 
-execute: compile
-	./main
-	rm main
-	
 clear: 
 	rm data/*.txt
