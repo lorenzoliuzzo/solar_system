@@ -53,7 +53,7 @@ class planet : public mass<DIM> {
         linear_velocity<DIM> perihelion_velocity_;
 
         linear_velocity<DIM> aphelion_velocity_;
-
+        
 
     public:
 

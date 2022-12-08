@@ -30,6 +30,7 @@ void simulate_solar_system(const time_measurement& tmax, const time_measurement&
             solar_system[i].as_position().save("data/" + solar_system_names[i] + "_position.txt", km);
             solar_system[i].as_linear_velocity().save("data/" + solar_system_names[i] + "_velocity.txt", km_s);
         }
+
         t += dt;
 
     } while(t < tmax);
@@ -46,7 +47,7 @@ void simulate_solar_system(const time_measurement& tmax, const time_measurement&
 
 int main() {
 
-
+    
     simulate_solar_system(31536000 * 5 * s, 86400 * 2 * s);
 
     return 0; 
